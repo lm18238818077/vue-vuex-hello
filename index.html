@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://unpkg.com/vue@next"></script>
+  <!-- 引入样式 -->
+
+  <link rel="stylesheet" href="https://unpkg.com/element-plus/lib/theme-chalk/index.css">
+  <!-- 引入组件库 -->
+  <script src="https://unpkg.com/element-plus/lib/index.full.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios@0.12.0/dist/axios.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lodash@4.13.1/lodash.min.js"></script>
+  <style>
+    .fade-enter-active,
+    .fade-leave-active {
+      transition: opacity 0.5s ease;
+    }
+
+    .fade-enter-from,
+    .fade-leave-to {
+      opacity: 0;
+    }
+
+    .container {
+      display: grid;
+      justify-content: space-between;
+      grid-template-columns: repeat(auto-fill, 100px);
+      grid-gap: 10px;
+    }
+
+    .list {
+      width: 100px;
+      height: 100px;
+      background-color: skyblue;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+
+<body></body>
+
+</html>
+
+<div id="app" class="demo">
+  <div>
+    <el-divider>根目录继承属性</el-divider>
+    <welcome-button id="ming" aa="bb"  @click="handle"></welcome-button>
+
+    <el-divider>keep-alive</el-divider>
+    <button v-for="tab in tabs" :key="tab"
+      v-on:click="currentTab = tab">
+      {{ tab }}
+    </button>
+    <keep-alive>
+      <component v-bind:is="currentTabComponent" class="tab"></component>
+    </keep-alive>
+
+    <el-divider>v-modal</el-divider>
+    <custom-input v-model:cjj.trim="customvalue"></custom-input>
+    {{customvalue}}
+
+    <el-divider>v-is</el-divider>
+    <table>
+      <tr v-is="'is-tr'"></tr>
+    </table>   
+
+    <el-divider>作用域插槽</el-divider>
+    <button @click="listdata[0]={title: 'lol2'}">插槽</button>
+    <cjj-list :data="listdata">
+      <template #item="{title}">
+        <i class="el-icon-delete"></i>
+        <div>father-{{title}}</div>
+      </template>
+    </cjj-list>
+
+
+    <el-divider>transition</el-divider>
+    <button @click="show = !show">
+      Toggle
+    </button>
+    <transition name="fade">
+      <p v-if="show">hello</p>
+    </transition>
+
+    <el-divider></el-divider>
+    <todo-list></todo-list>
+
+
+
+
+  </div>
+</div>
+
+<script>
+  const { createApp, h, ref, reactive, toRefs, onMounted } = Vue
+  function useFeatureX() {
+  const state = reactive({
+    foo: 1,
+    bar: 2
+  })
+  setTimeout(()=>{
+    state.foo = 2
+  },1000)
+  return toRefs(state)
+}
+
+  const app = createApp({
+    data() {
+      return {
+        customvalue: "22",
+        currentTab: 'Home',
+        tabs: ['Home', 'Posts', 'Archive'],
+        show: false,
+        listdata: [{title: 'lol'},{title: 'dota'},{title: 'cf'}]
+      };
+    },
+    created() {
+
+    },
+    computed: {
+      currentTabComponent() {
+        return 'tab-' + this.currentTab.toLowerCase()
+      }
+    },
+    methods: {
+      handle () {
+        console.log(111)
+      }
+    },
+    beforeUpdate: function () {
+      console.log("beforeUpdate");
+    },
+    updated: function () {
+      console.log("updated");
+    },
+  });
+
+  const mixin = {
+    created() {
+      this.dealTime()
+    },
+    methods: {
+      dealTime() {
+        console.log('这是mixin的dealTime里面的方法');
+      }
+    }
+  }
+
+  app.component("is-tr", {
+    template: `
+    <tr v-for="v in 5">welcome-button</tr>
+    `,
+    mounted() {
+    }
+  });
+
+  app.component("cjj-list", {
+    template: `
+    <ul>
+      <li v-for="(v,i) in data">
+        <slot :title="v.title" name="item">
+          <p>{{v.title}}</p>  
+        </slot>  
+        <slot name="item2">{{i}}</slot>
+      </li>  
+    </ul>
+    `,
+    props: ['data'],
+    mounted() {
+    }
+  });
+
+  
+  app.component("welcome-button", {
+    template: `
+    <button>welcome-button</button>
+    <div></div>
+    `,
+    mounted() {
+    }
+  });
+
+  app.component('tab-home', {
+    template: `<div class="demo-tab">Home component</div>`
+  })
+  app.component('tab-posts', {
+    data() {
+      return {
+        cur: 0
+      }
+    },
+    template: `<div class="demo-tab">
+      Posts component
+      {{cur}}
+      <div v-for="v in 4" @click="cur = v">{{v}}</div>
+    </div>`
+  })
+  app.component('tab-archive', {
+    template: `<div class="demo-tab">Archive component</div>`
+  })
+
+  app.component("custom-input", {
+    props: ["cjj", "cjjModifiers"],
+    emits: ["update:cjj"],
+    template: `
+      <input 
+        :value="cjj"
+        @input="this.$emit('update:cjj', $event.target.value)"
+      />
+    `,
+    created() {
+      console.log(this.cjjModifiers)
+    }
+  });
+
+  app.component('todo-list', {
+    mixins: [mixin],
+    template: `
+    <div>
+      <todo-list-statistics :todos="todos"></todo-list-statistics>
+    </div>
+    `,
+    data() {
+      return {
+        todos: [1, 2, 3, 4]
+      }
+    },
+    provide() {
+      return {
+        todos: this.todos
+      }
+    },
+    mounted() {
+      setTimeout(() => {
+        this.todos = ['cjj']
+      }, 1000)
+    }
+  })
+  app.component('todo-list-statistics', {
+    setup(props) {
+      console.log(props.todos)
+      const { todos } = toRefs(props)
+      const readersNumber = ref(0)
+      const inputref = ref(null)
+      let book = { title: 'Vue 3 Guide' }
+      const { foo, bar } = useFeatureX()
+      setTimeout(() => {
+        readersNumber.value = 20
+        book = {title: 'Vue 3 Guidecjj'}
+      }, 1000);
+      onMounted(() => {
+        inputref.value.focus()
+      })
+
+      // Please note that we need to explicitly expose ref value here
+      return { readersNumber, book, inputref, foo }
+    },
+    template: `<div>{{readersNumber}}{{book.title}}-{{foo}}</div><input ref="inputref"/>`,
+    props: ['todos'],
+  })
+
+  app.component("blog-post-row", {
+    template: `
+    <tr v-is="'blog-post-row'">
+      <th>First name</th>
+      <th>Last name</th>
+    </tr>
+    `,
+  });
+
+  
+  app.use(ElementPlus);
+  const vm = app.mount("#app");
+</script>

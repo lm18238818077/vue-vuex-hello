@@ -17,6 +17,13 @@ export function getClass(params) {
   return request({
     url: '/user/auth',
     method: 'get',
-    params: { params }
+    params
+  })
+}
+export function getSurvey(params) {
+  return request({
+    url: '/manager/survey/main',
+    method: 'get',
+    params
   })
 }

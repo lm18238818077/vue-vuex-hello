@@ -36,6 +36,10 @@ const actions = {
     commit('SET_TOKEN', '')
     removeToken()
   },
+  async me({ commit }) {
+    commit('setAdmin','ab')
+    commit('cjj/SET_NUM','aa',{root: true})
+  },
 }
 
 export default {
